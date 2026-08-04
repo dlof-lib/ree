@@ -1,0 +1,29 @@
+REE {
+  meta {
+    name: "project-x"
+    version: "1.0"
+  }
+
+  ext {
+    base: "config"
+    rule: sequence(".v{n}", n: 1..3)
+  }
+
+  path {
+    root: "output"
+    segments: ["users", "profile", "config{ext.result}"]
+    collision: "none"
+  }
+
+  crypt {
+    algo: "SHA-256"
+    mode: "hash"
+    target: path.result
+  }
+
+  zip {
+    format: "gzip"
+    level: 9
+    input: path.result
+  }
+}
