@@ -1,0 +1,29 @@
+// مثال متقدم — يعرض المتغيرات، التعبيرات، الشروط، الحلقات، والدوال المعرّفة.
+REE {
+  let is_release = true
+  let build_number = 7
+
+  // دالة مساعدة: تحوّل رقمًا إلى لاحقة إصدار مثل ".b7"
+  define version_suffix(n) { ".b" + str(n) }
+
+  meta {
+    name: "project-x"
+    version: "1.0" + version_suffix(build_number)
+  }
+
+  if (is_release && build_number > 5) {
+    let channel = "stable"
+  } else {
+    let channel = "beta"
+  }
+
+  // حلقة تولّد مسارًا لكل لغة مدعومة
+  for lang in ["ar", "en", "fr"] {
+    path {
+      root: "output"
+      segments: ["locales", lang, "config" + channel]
+    }
+  }
+
+  crypt { algo: "SHA-256" mode: "hash" target: meta.version }
+}
