@@ -1,0 +1,7 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <color name="ree_primary">#0E5265</color>
+    <color name="ree_primary_dark">#093A47</color>
+    <color name="ree_accent">#4DB6AC</color>
+    <color name="ree_bg">#F5F7F8</color>
+</resources>
