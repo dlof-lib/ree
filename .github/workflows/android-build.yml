@@ -29,13 +29,26 @@ jobs:
       - name: Set up Android SDK
         uses: android-actions/setup-android@v3
 
-      - name: Make Gradle wrapper executable
+      - name: List android directory (debug)
+        run: ls -la android || echo "android directory missing"
+
+      - name: Make Gradle wrapper executable (if present)
         working-directory: android
-        run: chmod +x ./gradlew
+        run: |
+          if [ -f ./gradlew ]; then
+            chmod +x ./gradlew
+          else
+            echo "No gradlew found in android/ — will use installed Gradle from setup-gradle"
+          fi
 
       - name: Build debug APK
         working-directory: android
-        run: ./gradlew :app:assembleDebug --stacktrace
+        run: |
+          if [ -f ./gradlew ]; then
+            ./gradlew :app:assembleDebug --stacktrace
+          else
+            gradle :app:assembleDebug --stacktrace
+          fi
 
       - name: Upload APK artifact
         uses: actions/upload-artifact@v4
@@ -65,13 +78,26 @@ jobs:
       - name: Set up Android SDK
         uses: android-actions/setup-android@v3
 
-      - name: Make Gradle wrapper executable
+      - name: List android directory (release)
+        run: ls -la android || echo "android directory missing"
+
+      - name: Make Gradle wrapper executable (if present)
         working-directory: android
-        run: chmod +x ./gradlew
+        run: |
+          if [ -f ./gradlew ]; then
+            chmod +x ./gradlew
+          else
+            echo "No gradlew found in android/ — will use installed Gradle from setup-gradle"
+          fi
 
       - name: Build unsigned release APK
         working-directory: android
-        run: ./gradlew :app:assembleRelease --stacktrace
+        run: |
+          if [ -f ./gradlew ]; then
+            ./gradlew :app:assembleRelease --stacktrace
+          else
+            gradle :app:assembleRelease --stacktrace
+          fi
 
       - name: Upload release APK artifact
         uses: actions/upload-artifact@v4
