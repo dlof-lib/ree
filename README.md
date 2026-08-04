@@ -21,12 +21,17 @@ ree-project/
 
 ```bash
 cd ree_lang_project
-pip install -e ".[all]"     # يثبت cryptography + Pillow + brotli + zstandard (اختياري)
+pip install -e ".[all,dev]"   # يثبت cryptography + Pillow + brotli + zstandard + pytest
 ree run examples/example.ree -v
+ree run examples/advanced.ree -v
+ree check examples/advanced.ree     # تحقق نحوي فقط دون تنفيذ
+ree repl                            # وضع تفاعلي
+python -m pytest                    # تشغيل الاختبارات
 ```
 
-الكتل المدعومة: `meta{}` `ext{}` `path{}` `crypt{}` `zip{}` `img{}`.
-كل كتلة تنتج `blockname.result` يمكن استخدامه في الكتل التالية عبر `{blockname.result}`.
+الكتل المدعومة أصلًا: `meta{}` `ext{}` `path{}` `crypt{}` `zip{}` `img{}`.
+كل كتلة تنتج `blockname.result` يمكن استخدامه في الكتل التالية عبر `blockname.result`
+(أو `{blockname.result}` داخل سلسلة نصية للاستيفاء).
 
 ### مثال مصغّر
 ```ree
@@ -38,12 +43,45 @@ REE {
 }
 ```
 
+## 1.1 ميزات اللغة المتقدمة (الإصدار 0.2)
+
+المحرك الآن مفسّر شجرة-تركيب كامل، وليس مجرد قوالب. يدعم:
+
+- **تعبيرات كاملة**: حسابية `+ - * / %`، منطقية `&& || !`، مقارنة `== != < > <= >=`،
+  بترتيب أسبقية صحيح، وأقواس `()` للتجميع.
+- **متغيرات**: `let name = expr`.
+- **شروط**: `if (cond) { ... } else { ... }` — ما يُعرَّف داخل الفرع يُدمج في النطاق
+  الخارجي، فيمكن استخدامه في الكتل اللاحقة.
+- **حلقات**: `for x in [a, b, c] { ... }` أو `for n in 1..5 { ... }` — تُنفَّذ الكتلة
+  الداخلية لكل عنصر؛ نتيجة آخر تكرار تبقى متاحة بعد الحلقة.
+- **دوال معرّفة**: `define name(params) { expr }` تُستدعى كأي دالة أخرى.
+- **استيراد**: `import "shared.ree"` يدمج تعريفات ملف آخر (متغيرات ودوال) في النطاق
+  الحالي، مع حماية من الاستيراد الدائري.
+- **أنواع قيم إضافية**: أعداد عشرية، `true` / `false` / `null`.
+- **دوال مكتبة قياسية أوسع**: `env()` `date()` `now()` `uuid()` `sequence()`
+  `random()` `hash()` `derive()` `upper()` `lower()` `concat()` `length()`
+  `min()` `max()` `round()` `str()` `int()`.
+- **رسائل خطأ احترافية** بموقع دقيق (سطر/عمود) ومقتطف من الشيفرة مع مؤشر `^`،
+  عبر تسلسل استثناءات موحّد `LexError` / `ParseError` / `EngineError` في
+  `ree_lang/errors.py`.
+- **كتل قابلة للتوسعة**: أي طرف خارجي يمكنه تسجيل نوع كتلة جديد دون تعديل الحزمة:
+
+```python
+from ree_lang.blocks import register_block
+
+@register_block("notify")
+def run_notify(props: dict, ctx: dict) -> dict:
+    return {"result": f"sent: {props.get('message')}"}
+```
+
+انظر `examples/advanced.ree` لمثال يجمع كل هذه الميزات معًا.
+
 ## 2. تطبيق محرر REE للموبايل (Kotlin/XML)
 
 تطبيق أندرويد بسيط:
-- محرر نصوص مع تلوين تركيبي (Syntax Highlighting) للكلمات المفتاحية `REE ext path crypt zip img`.
+- محرر نصوص مع تلوين تركيبي (Syntax Highlighting) للكلمات المفتاحية `REE ext path crypt zip img` وكلمات التحكم `let if else for in define import`.
 - فتح/حفظ ملفات `.ree` عبر Storage Access Framework.
-- زر **تحقق** يشغّل مدقق نحوي خفيف على الجهاز (`ReeValidator.kt`) يتأكد من توازن الأقواس وصحة أسماء الكتل — التنفيذ الفعلي (توليد/تشفير/ضغط) يتم عبر محرك بايثون.
+- زر **تحقق** يشغّل مدقق نحوي خفيف على الجهاز (`ReeValidator.kt`) يتأكد من توازن الأقواس، ويستثني كلمات اللغة المفتاحية من فحص "الأدوار"، ويسمح بكتل مخصّصة غير معروفة محليًا (لأنها قد تكون مسجّلة عبر `register_block` في بايثون) — التنفيذ الفعلي (المتغيرات/الشروط/الحلقات/الدوال/توليد الملفات/التشفير/الضغط) يتم عبر محرك بايثون المتقدم.
 
 ### بناء APK محليًا
 يتطلب Android Studio (أو Android SDK + JDK 17):
