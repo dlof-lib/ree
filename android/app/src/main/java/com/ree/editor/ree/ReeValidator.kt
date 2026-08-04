@@ -3,11 +3,14 @@ package com.ree.editor.ree
 /**
  * مدقق خفيف يعمل على الجهاز مباشرة (بدون تشغيل فعلي):
  * - يتحقق من توازن الأقواس {} [] ()
- * - يتحقق من أن كل كتلة رئيسية من الأدوار المعروفة
- * التنفيذ الفعلي (توليد الملفات/التشفير/الضغط) يتم عبر محرك REE بلغة بايثون.
+ * - يتحقق من أن كل كتلة رئيسية من الأدوار المعروفة (أو كتلة مسجّلة عبر register_block)
+ * التنفيذ الفعلي (المتغيرات/الشروط/الحلقات/الدوال/توليد الملفات/التشفير/الضغط)
+ * يتم عبر محرك REE المتقدم بلغة بايثون (ree_lang).
  */
 object ReeValidator {
 
+    // الكلمات المفتاحية للغة لا تُعامَل ككتل، فهي مستثناة صراحةً من فحص "الأدوار غير المعروفة"
+    private val LANGUAGE_KEYWORDS = setOf("let", "if", "else", "for", "in", "define", "import")
     private val KNOWN_ROLES = setOf("REE", "meta", "ext", "path", "crypt", "zip", "img")
 
     data class Result(val isValid: Boolean, val message: String)
@@ -42,10 +45,11 @@ object ReeValidator {
         }
 
         val roleRegex = Regex("""(\w+)\s*\{""")
-        val foundRoles = roleRegex.findAll(source).map { it.groupValues[1] }.toList()
+        val foundTokens = roleRegex.findAll(source).map { it.groupValues[1] }.toList()
+        val foundRoles = foundTokens.filter { it !in LANGUAGE_KEYWORDS }
         val unknown = foundRoles.filter { it !in KNOWN_ROLES }
         if (unknown.isNotEmpty()) {
-            return Result(false, "⚠️ أدوار غير معروفة: ${unknown.joinToString()}")
+            return Result(false, "⚠️ أدوار غير معروفة: ${unknown.joinToString()} (قد تكون كتلة مخصّصة مُسجّلة عبر register_block في بايثون)")
         }
         if (foundRoles.none { it == "ext" || it == "path" || it == "crypt" || it == "zip" || it == "img" }) {
             return Result(false, "⚠️ لا توجد أي كتلة فعّالة (ext/path/crypt/zip/img)")
