@@ -1,0 +1,8 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="app_name">محرر REE</string>
+    <string name="action_open">فتح</string>
+    <string name="action_save">حفظ</string>
+    <string name="action_validate">تحقق</string>
+    <string name="status_ready">جاهز — اكتب برنامج REE هنا</string>
+</resources>
