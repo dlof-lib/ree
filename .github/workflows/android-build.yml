@@ -14,6 +14,8 @@ jobs:
     steps:
       - name: Checkout
         uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
 
       - name: Set up JDK 17
         uses: actions/setup-java@v4
@@ -29,8 +31,31 @@ jobs:
       - name: Set up Android SDK
         uses: android-actions/setup-android@v3
 
-      - name: List android directory (debug)
-        run: ls -la android || echo "android directory missing"
+      # --- Debugging helpers: print environment and gradle files ---
+      - name: Print Java / Gradle environment
+        run: |
+          echo "===== java -version ====="
+          java -version || true
+          echo "===== echo JAVA_HOME ====="
+          echo "$JAVA_HOME"
+          echo "===== gradle (system) --version ====="
+          gradle --version || true
+          echo "===== ./gradlew --version (if present) ====="
+          if [ -f android/gradlew ]; then
+            (cd android && ./gradlew --version) || true
+          fi
+
+      - name: Show android Gradle files (debug)
+        run: |
+          echo "===== android/settings.gradle ====="
+          sed -n '1,200p' android/settings.gradle || true
+          echo "===== android/build.gradle ====="
+          sed -n '1,200p' android/build.gradle || true
+          echo "===== android/app/build.gradle ====="
+          sed -n '1,400p' android/app/build.gradle || true
+          echo "===== list android dir ====="
+          ls -la android || true
+      # --- end debug helpers ---
 
       - name: Make Gradle wrapper executable (if present)
         working-directory: android
@@ -43,11 +68,13 @@ jobs:
 
       - name: Build debug APK
         working-directory: android
+        env:
+          JAVA_HOME: ${{ env.JAVA_HOME }}
         run: |
           if [ -f ./gradlew ]; then
-            ./gradlew :app:assembleDebug --stacktrace
+            ./gradlew :app:assembleDebug --no-daemon --stacktrace --info --debug
           else
-            gradle :app:assembleDebug --stacktrace
+            gradle :app:assembleDebug --no-daemon --stacktrace --info --debug
           fi
 
       - name: Upload APK artifact
@@ -63,6 +90,8 @@ jobs:
     steps:
       - name: Checkout
         uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
 
       - name: Set up JDK 17
         uses: actions/setup-java@v4
@@ -78,8 +107,15 @@ jobs:
       - name: Set up Android SDK
         uses: android-actions/setup-android@v3
 
-      - name: List android directory (release)
-        run: ls -la android || echo "android directory missing"
+      - name: Show android Gradle files (release debug)
+        run: |
+          echo "===== android/settings.gradle ====="
+          sed -n '1,200p' android/settings.gradle || true
+          echo "===== android/build.gradle ====="
+          sed -n '1,200p' android/build.gradle || true
+          echo "===== android/app/build.gradle ====="
+          sed -n '1,400p' android/app/build.gradle || true
+          ls -la android || true
 
       - name: Make Gradle wrapper executable (if present)
         working-directory: android
@@ -94,9 +130,9 @@ jobs:
         working-directory: android
         run: |
           if [ -f ./gradlew ]; then
-            ./gradlew :app:assembleRelease --stacktrace
+            ./gradlew :app:assembleRelease --no-daemon --stacktrace --info --debug
           else
-            gradle :app:assembleRelease --stacktrace
+            gradle :app:assembleRelease --no-daemon --stacktrace --info --debug
           fi
 
       - name: Upload release APK artifact
