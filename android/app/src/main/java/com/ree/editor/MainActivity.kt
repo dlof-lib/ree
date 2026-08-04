@@ -90,7 +90,11 @@ class MainActivity : AppCompatActivity() {
         val text = editable.toString()
         val spannable = SpannableString(text)
 
-        val keywords = listOf("REE", "meta", "ext", "path", "crypt", "zip", "img")
+        val keywords = listOf(
+            "REE", "meta", "ext", "path", "crypt", "zip", "img",
+            "let", "if", "else", "for", "in", "define", "import",
+            "true", "false", "null",
+        )
         for (kw in keywords) {
             var idx = text.indexOf(kw)
             while (idx >= 0) {
