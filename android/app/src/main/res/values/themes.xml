@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <style name="Theme.REEEditor" parent="Theme.Material3.Light.NoActionBar">
+        <item name="colorPrimary">@color/ree_primary</item>
+        <item name="colorPrimaryVariant">@color/ree_primary_dark</item>
+        <item name="colorOnPrimary">#FFFFFF</item>
+        <item name="colorSecondary">@color/ree_accent</item>
+        <item name="android:windowBackground">@color/ree_bg</item>
+    </style>
+</resources>
